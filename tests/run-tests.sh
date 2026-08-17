@@ -28,8 +28,8 @@ check() {                       # check <name> <expected> <actual>
 
 echo "running tests against ${APP}"
 
-check "greet_default"  "hello, world"  "$("$APP" --greet)"
-check "greet_name"     "hello, jenkins" "$("$APP" --greet jenkins)"
+check "greet_default"  "hi there, world"  "$("$APP" --greet)"
+check "greet_name"     "hi there, jenkins" "$("$APP" --greet jenkins)"
 check "add_numbers"    "7"             "$("$APP" --add 3 4)"
 
 if [ "${FAIL_TESTS:-false}" = "true" ]; then

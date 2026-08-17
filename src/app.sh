@@ -7,7 +7,7 @@ BUILD="@BUILD@"
 
 greet() {
   local name="${1:-world}"
-  echo "hello, ${name}"
+  echo "hi there, ${name}"
 }
 
 add() {

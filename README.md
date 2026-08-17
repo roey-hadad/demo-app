@@ -3,12 +3,26 @@
 A deliberately tiny "application" for the Real Time College Jenkins course.
 It exists so the pipeline has something real to build, test and archive.
 
-This is the **developer** repository. The `Jenkinsfile` lives here, next to the
-code it builds - that is the whole argument of Module 4, slide 31.
+This is the **developer** repository.
+
+## Two Jenkinsfiles, on purpose
+
+| File | What it is |
+|---|---|
+| `Jenkinsfile` | **The real-world version.** 4 lines. Calls the shared template in `jenkins-devops`. This is what you ship. |
+| `Jenkinsfile.full` | **The teaching version.** Every block spelled out, for slides 33-38. Never ship this into 40 repos. |
+
+The thin one is the Jenkins equivalent of GitLab CI's `include:` - the pipeline
+lives once, centrally, and each app repo just points at it with its own
+parameters. Switch between them with **Configure > Pipeline > Script Path**.
+
+Either way a file must exist here. GitLab needs a `.gitlab-ci.yml` in every repo
+too; Jenkins needs a `Jenkinsfile`. Neither lets you have zero file.
 
 ## Layout
 
-    Jenkinsfile          the pipeline, versioned with the code
+    Jenkinsfile          4 lines - calls the shared template (real world)
+    Jenkinsfile.full     the full pipeline, spelled out (teaching)
     Makefile             build / test / lint / clean
     src/app.sh           the "application"
     tests/run-tests.sh   test harness, writes JUnit XML to reports/

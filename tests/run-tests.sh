@@ -31,6 +31,7 @@ echo "running tests against ${APP}"
 check "greet_default"  "hello, world"  "$("$APP" --greet)"
 check "greet_name"     "hello, jenkins" "$("$APP" --greet jenkins)"
 check "add_numbers"    "7"             "$("$APP" --add 3 4)"
+check "mul_numbers"    "12"            "$("$APP" --mul 3 4)"
 
 if [ "${FAIL_TESTS:-false}" = "true" ]; then
   check "add_numbers_broken" "99" "$("$APP" --add 1 1)"

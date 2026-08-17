@@ -1,0 +1,81 @@
+// ============================================================================
+//  THE TEACHING VERSION - every block spelled out, for Module 4 slides 33-38.
+//
+//  This is NOT how you ship it. With 40 microservices you would never copy
+//  these 77 lines into 40 repositories - see ../Jenkinsfile for the real one.
+//
+//  To run this instead of the thin version:
+//     job > Configure > Pipeline > Script Path:  Jenkinsfile.full
+// ============================================================================
+
+pipeline {
+    agent any
+
+    options {
+        timeout(time: 10, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+    }
+
+    parameters {
+        string(name: 'VERSION', defaultValue: '1.0.0', description: 'Release to build')
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'staging', 'prod'])
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run the test suite')
+    }
+
+    environment {
+        APP = 'demo-app'
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh 'make build VERSION=$VERSION BUILD=$BUILD_NUMBER'
+                sh './dist/app.sh --version'
+            }
+        }
+
+        stage('Checks') {
+            parallel {
+                stage('Unit tests') {
+                    when { expression { params.RUN_TESTS } }
+                    steps { sh 'make test' }
+                }
+                stage('Lint') {
+                    steps { sh 'make lint' }
+                }
+            }
+        }
+
+        stage('Deploy staging') {
+            when { branch 'develop' }
+            steps { sh 'echo "deploying $APP $VERSION to staging"' }
+        }
+
+        stage('Deploy production') {
+            when {
+                allOf {
+                    branch 'main'
+                    expression { params.ENVIRONMENT == 'prod' }
+                }
+            }
+            steps {
+                timeout(time: 10, unit: 'MINUTES') {
+                    input message: "Deploy ${params.VERSION} to PRODUCTION?", ok: 'Ship it'
+                }
+                sh 'echo "deploying $APP $VERSION to production"'
+            }
+        }
+    }
+
+    post {
+        always {
+            junit testResults: 'reports/*.xml', allowEmptyResults: true
+            archiveArtifacts artifacts: 'dist/*.tar.gz', fingerprint: true, allowEmptyArchive: true
+        }
+        success  { echo "SUCCESS  ${env.APP} ${params.VERSION}  ${env.BUILD_URL}" }
+        unstable { echo "UNSTABLE - it built, but tests failed" }
+        failure  { echo "FAILED   ${env.BUILD_URL}" }
+        cleanup  { cleanWs() }
+    }
+}
